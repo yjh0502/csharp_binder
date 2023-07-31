@@ -180,7 +180,12 @@ fn write_token(
         Item::Union(_) => {}
         Item::Use(_) => {}
         Item::Verbatim(_) => {}
-        Item::__TestExhaustive(_) => {}
+        _ => {
+            return Err(Error::UnsupportedError(
+                "Unknown rust construct.".to_string(),
+                token.span(),
+            ));
+        }
     }
     Ok(())
 }
@@ -347,7 +352,7 @@ fn write_enum(
         write!(str, "{}", name)?;
         match &variant.discriminant {
             Some(v) => {
-                let expr = v.1.borrow();
+                let expr = &v.1;
                 if let Expr::Lit(l) = expr {
                     if let syn::Lit::Int(i) = &l.lit {
                         write!(str, " = {}", i.base10_digits())?;
@@ -651,7 +656,10 @@ fn convert_type_name(t: &syn::Type, builder: &CSharpBuilder) -> Result<TypeNameC
             t.span()
 
         )),
-        Type::__TestExhaustive(_) => unreachable!(),
+        _ => Err(Error::UnsupportedError(
+            "Unknown rust construct.".to_string(),
+            t.span()
+        )),
     }
 }
 
